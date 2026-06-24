@@ -17,7 +17,6 @@ Run examples:
 ./heap_sort_step dataset_1000.csv 1 7
 ./hash_table_search dataset_1000.csv
 ./hash_table_search_step dataset_1000.csv 1000000038
-dataset_36000000.csv
 
 Expected output file names:
 dataset_n.csv
@@ -28,8 +27,4 @@ dataset_n_heap_sorted_step_startrow_endrow.txt
 hash_table_search_dataset_n.txt
 dataset_n_hash_table_search_step_target.txt
 
-Notes:
-1. The code does not use built-in sorting or searching functions.
-2. The timing starts after file reading and stops before writing output.
-3. Replace the student information in the comment header before submission.
-4. Change the seed in dataset_generator.cpp to the group leader student ID after letter-to-digit conversion.
+

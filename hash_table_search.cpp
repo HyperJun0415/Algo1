@@ -5,8 +5,8 @@
 // Tutorial Class: TT9L
 // Trimester: 2610
 // Member_1: 242UC244PB | LEM JOE ERN | lem.joe.ern@student.mmu.edu.my | 0162237965
-// Member_2: ID | NAME | EMAIL | PHONE
-// Member_3: ID | NAME | EMAIL | PHONE
+// Member_2: 251UC250J5 | LEE JUN YAN | lee.jun.yan@student.mmu.edu.my | 0128500415
+// Member_3: 251UC25141 | SHAWN GOH XUN SHEN | shawn.goh.xun@student.mmu.edu.my | 0199906601
 // Member_4: 242UC244KV | KOH HUI WEN | koh.hui.wen@student.mmu.edu.my | 0129817286
 // *********************************************************
 // Task Distribution
@@ -25,110 +25,111 @@
 #include <iomanip>
 using namespace std;
 
-struct Record {
-    long long key;
+struct Record { // Structure to hold a single row of data
+    long long key; //use long long for 10 digit integer
     string word;
 };
 
-struct Node {
-    Record data;
-    Node* next;
+struct Node { //single node inside the linked list for handling hash collisions
+    Record data; // Holds the actual record data e.g key and word
+    Node* next; // Pointer to the next node in the list
 };
 
 class HashTable {
 private:
-    vector<Node*> table;
-    int tableSize;
+    vector<Node*> table; // The actual hash table that is an array of linked list pointers
+    int tableSize; // Holds the total capacity of the hash table
 
 public:
-    HashTable(int size) {
-        tableSize = size;
-        table.assign(tableSize, NULL);
+    HashTable(int size) { //constructor when table is created
+        tableSize = size; // Set the table size
+        table.assign(tableSize, NULL); // Fill the table with NULL to show it's currently empty
     }
 
-    ~HashTable() {
-        clear();
+    ~HashTable() { //deconstructor when table is destroyed to free up memory
+        clear(); //call function to delete all nodes
     }
 
-    int hashFunction(long long key) const {
-        return key % tableSize;
+    int hashFunction(long long key) const { // Calculate hash table index using modulus operation
+        return key % tableSize; // formula is key % tableSize
     }
 
-    void insert(Record r) {
-        int index = hashFunction(r.key);
+    void insert(Record r) { // Inserts a new record into the hash table
+        int index = hashFunction(r.key); // Calculate the index for this record.
 
-        Node* newNode = new Node;
-        newNode->data = r;
-        newNode->next = table[index];
+        Node* newNode = new Node; // Create a new node.
+        newNode->data = r; // Store the record inside the node.
+        newNode->next = table[index]; // Link the new node to the current node.
 
-        table[index] = newNode;
+        table[index] = newNode; // Insert the node into the hash table.
     }
 
-    bool search(long long target, Record& found) const {
-        int index = hashFunction(target);
-        Node* current = table[index];
+    bool search(long long target, Record& found) const { // Searches for a target key. Returns true if found, false if not.
+        int index = hashFunction(target); // Calculate the index of the target key.
+        Node* current = table[index]; // Start searching from the first node.
 
-        while (current != NULL) {
-            if (current->data.key == target) {
-                found = current->data;
+        while (current != NULL) { // Continue searching until the end of the linked list.
+            if (current->data.key == target) { // Compare the target key with the current key
+                found = current->data; // Store the found record.
                 return true;
             }
 
-            current = current->next;
+            current = current->next; // Move to the next node.
         }
 
-        return false;
+        return false; // Target key not found.
     }
 
+    // find the first key that exists in the hash table
     long long firstKeyInTable() const {
         for (int i = 0; i < tableSize; i++) {
             if (table[i] != NULL) {
-                return table[i]->data.key;
+                return table[i]->data.key; // return the first key found
             }
         }
 
-        return -1;
+        return -1; // return -1 if the table is empty
     }
 
-    long long missingKeyForLongestChain() const {
+    long long missingKeyForLongestChain() const {  // Find the longest linked list in the hash table
         int longestIndex = 0;
         int longest = -1;
 
         for (int i = 0; i < tableSize; i++) {
-            int count = 0;
-            Node* current = table[i];
+            int count = 0;  // count nodes at this index
+            Node* current = table[i]; // start from the first node
 
-            while (current != NULL) {
-                count++;
-                current = current->next;
+            while (current != NULL) { // Count the number of nodes.
+                count++; // add 1 for each node
+                current = current->next; // move to next node
             }
 
-            if (count > longest) {
-                longest = count;
-                longestIndex = i;
+            if (count > longest) { // Save the longest linked list.
+                longest = count; // save the longest chain length
+                longestIndex = i; // save the index of that chain
             }
         }
 
-        long long target = 10000000000LL + longestIndex;
+        long long target = 10000000000LL + longestIndex; // create a missing key for worst case search
 
-        while (target % tableSize != longestIndex) {
-            target++;
+        while (target % tableSize != longestIndex) { // Make sure the key is mapped to the same index.
+            target++; // adjust the key until it maps to the longest chain index
         }
 
         return target;
     }
 
-    void clear() {
+    void clear() { // delete all nodes from the hash table
         for (int i = 0; i < tableSize; i++) {
             Node* current = table[i];
 
             while (current != NULL) {
-                Node* temp = current;
-                current = current->next;
-                delete temp;
+                Node* temp = current; // keep current node first
+                current = current->next;  // move to next node
+                delete temp; // delete old node
             }
 
-            table[i] = NULL;
+            table[i] = NULL; // make this index empty
         }
     }
 };
@@ -195,11 +196,12 @@ int main() {
     }
 
     Record found;
-    volatile long long check = 0;
+    volatile long long check = 0; //so the compiler does not ignore the search result
 
-    long long bestTarget = ht.firstKeyInTable();
-    long long worstTarget = ht.missingKeyForLongestChain();
+    long long bestTarget = ht.firstKeyInTable(); // key used for best case search
+    long long worstTarget = ht.missingKeyForLongestChain(); // missing key used for worst case search
 
+    // Best Case: search the same key that can be found quickly
     auto startBest = chrono::high_resolution_clock::now();
 
     for (int i = 0; i < n; i++) {
@@ -210,6 +212,7 @@ int main() {
 
     auto stopBest = chrono::high_resolution_clock::now();
 
+    // Average Case: search every key from the dataset
     auto startAverage = chrono::high_resolution_clock::now();
 
     for (int i = 0; i < n; i++) {
@@ -220,6 +223,7 @@ int main() {
 
     auto stopAverage = chrono::high_resolution_clock::now();
 
+    // Worst Case: search a missing key at the longest chain
     auto startWorst = chrono::high_resolution_clock::now();
 
     for (int i = 0; i < n; i++) {
@@ -230,15 +234,18 @@ int main() {
 
     auto stopWorst = chrono::high_resolution_clock::now();
 
+    // Calculate time differences in seconds
     double bestTime = chrono::duration<double>(stopBest - startBest).count();
     double averageTime = chrono::duration<double>(stopAverage - startAverage).count();
     double worstTime = chrono::duration<double>(stopWorst - startWorst).count();
 
+    // Format output files based on dataset size
     string sizeText = getSizeText(filename, n);
     string outName = "hash_table_search_dataset_" + sizeText + ".txt";
 
     ofstream outFile(outName.c_str());
 
+    // Write timing results to output log file
     outFile << fixed << setprecision(9);
     outFile << "Best case time: " << bestTime << " seconds\n";
     outFile << "Average case time: " << averageTime << " seconds\n";
@@ -247,6 +254,7 @@ int main() {
     outFile << "Hash table size: " << tableSize << "\n";
     outFile << "Check value: " << check << "\n";
 
+    // Print timing results
     cout << fixed << setprecision(9);
     cout << "Best case time: " << bestTime << " seconds" << endl;
     cout << "Average case time: " << averageTime << " seconds" << endl;

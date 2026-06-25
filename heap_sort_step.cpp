@@ -23,112 +23,110 @@
 #include <string>
 using namespace std;
 
-struct Record
-{
+// This binds the integer key and the string word together.
+// When the keys are swapped during sorting, the word follows its key automatically.
+struct Record {
     long long key;
     string word;
 };
 
-vector<Record> readDataset(const string &filename)
-{
+// This function reads the comma-separated values from your dataset.
+vector<Record> readDataset(const string& filename) {
     vector<Record> a;
     ifstream inFile(filename.c_str());
     string line;
 
-    while (getline(inFile, line))
-    {
-        if (line != "")
-        {
+    // Read the file line by line
+    while (getline(inFile, line)) {
+        if (line != "") {
             stringstream ss(line);
             string left;
             string right;
 
-            if (getline(ss, left, ',') && getline(ss, right))
-            {
+            // Split the line at the comma (',')
+            if (getline(ss, left, ',') && getline(ss, right)) {
                 Record r;
-                r.key = stoll(left);
-                r.word = right;
-                a.push_back(r);
+                r.key = stoll(left);    // Convert the string number to a long long integer
+                r.word = right;         // Keep the 5-letter word as a string
+                a.push_back(r);         // Add the record to the vector array
             }
         }
     }
-
     return a;
 }
 
-string getSizeText(const string &filename, int n)
-{
+// This extracts the number from names like "dataset_1000.csv" to use in the output filename.
+string getSizeText(const string& filename, int n) {
     string text = "";
 
-    for (int i = 0; i < (int)filename.length(); i++)
-    {
-        if (filename[i] >= '0' && filename[i] <= '9')
-        {
+    for (int i = 0; i < (int)filename.length(); i++) {
+        // If the character is a digit, add it to our text string
+        if (filename[i] >= '0' && filename[i] <= '9') {
             text = text + filename[i];
         }
     }
 
-    if (text == "")
-    {
+    // Fallback if no numbers were in the filename
+    if (text == "") {
         text = to_string(n);
     }
 
     return text;
 }
 
-void printArray(ofstream &out, const vector<Record> &a, const string &label)
-{
+// This is custom to the "step" file. It formats the array like [key/word, key/word] 
+// and adds the label (like "initial" or "i = 6") at the end.
+void printArray(ofstream& out, const vector<Record>& a, const string& label) {
     out << "[";
 
-    for (int i = 0; i < (int)a.size(); i++)
-    {
+    for (int i = 0; i < (int)a.size(); i++) {
         out << a[i].key << "/" << a[i].word;
 
-        if (i != (int)a.size() - 1)
-        {
+        if (i != (int)a.size() - 1) {
             out << ", ";
         }
     }
-
     out << "] " << label << "\n";
 }
 
-void swapRecord(vector<Record> &a, int i, int j)
-{
+// Swap Utility
+void swapRecord(vector<Record>& a, int i, int j) {
     Record temp = a[i];
     a[i] = a[j];
     a[j] = temp;
 }
 
-void heapify(vector<Record> &a, int heapSize, int root)
-{
+// This enforces the rule: A parent node must be larger than its children.
+void heapify(vector<Record>& a, int heapSize, int root) {
     int largest = root;
+    // Calculate the array indices of the left and right children
     int left = 2 * root + 1;
     int right = 2 * root + 2;
 
-    if (left < heapSize && a[left].key > a[largest].key)
-    {
+    // If the left child is within the active heap and is larger than the parent
+    if (left < heapSize && a[left].key > a[largest].key) {
         largest = left;
     }
 
-    if (right < heapSize && a[right].key > a[largest].key)
-    {
+    // If the right child is within the active heap and is larger than the current largest
+    if (right < heapSize && a[right].key > a[largest].key) {
         largest = right;
     }
 
-    if (largest != root)
-    {
-        swapRecord(a, root, largest);
+    // If one of the children was larger than the original root
+    if (largest != root) {
+        swapRecord(a, root, largest);   // Swap
+        // Recursively check the affected branch to ensure the swap didn't break rules further down
         heapify(a, heapSize, largest);
     }
 }
 
-int main()
-{
+int main() {
     string filename;
     int startRow;
     int endRow;
 
+    // Get User Inputs
     cout << "Enter dataset filename: ";
     cin >> filename;
 
@@ -138,35 +136,31 @@ int main()
     cout << "Enter end row: ";
     cin >> endRow;
 
+    // Load ALL data from the CSV into memory
     vector<Record> all = readDataset(filename);
 
-    if (startRow < 1)
-    {
+    // Input validation to prevent crashes
+    if (startRow < 1) {
         startRow = 1;
     }
 
-    if (endRow > (int)all.size())
-    {
+    if (endRow > (int)all.size()) {
         endRow = all.size();
     }
 
-    if (startRow > endRow)
-    {
+    if (startRow > endRow) {
         cout << "Invalid row range." << endl;
         return 1;
     }
 
-    // Bound Filtering Logic: Since C++ vectors are 0-indexed but users enter
-    // real human row indices starting at 1, we subtract 1 from the range boundaries.
-    // This grabs only the requested slice of the dataset to create a safe trace array.
-
+    // Extract the Subset
     vector<Record> a;
 
-    for (int i = startRow - 1; i <= endRow - 1; i++)
-    {
-        a.push_back(all[i]);
+    for (int i = startRow - 1; i <= endRow - 1; i++) {
+        a.push_back(all[i]);    // Copy only the requested rows into a new array 'a'
     }
 
+    // Prepare the output text file name
     string sizeText = getSizeText(filename, all.size());
     string outName = "dataset_" + sizeText + "_heap_sorted_step_" + to_string(startRow) + "_" + to_string(endRow) + ".txt";
 
@@ -174,27 +168,26 @@ int main()
 
     int n = a.size();
 
-    // Phase 1: Build the Heap structure out of the sliced row subarray.
-
-    for (int i = n / 2 - 1; i >= 0; i--)
-    {
+    // Phase 1: Builds initial max heap
+    // Loop backward from the middle of the array to the start
+    for (int i = n / 2 - 1; i >= 0; i--) {
         heapify(a, n, i);
     }
 
-    // Prints out the stable, fully established max heap array state right before
-    // any extraction swaps begin. This serves as our baseline trace state.
-
+    // Print the array state after the Max-Heap is successfully built
     printArray(out, a, "initial");
 
-    // Phase 2: Sequential extraction passes.
+    // Phase 2: Extract and sort
+    // The largest number is currently at index 0. 
+    for (int i = n - 1; i > 0; i--) {
+        // Swap the largest number to the current end of the active array
+        swapRecord(a, 0, i);
 
-    for (int i = n - 1; i > 0; i--)
-    {
-        swapRecord(a, 0, i); // Swap current max element to its final sorted spot at the back
-        heapify(a, i, 0);    // Trickle the new root item down to fix the broken heap rule
-        // Tracing Point: Captures the exact arrangement of the array at the conclusion of
-        // the i-th structural modification pass. It visibly shows the elements sorting
-        // themselves from back to front.
+        // The array is now 'broken' because a small number is at the root
+        // Call heapify to let that small number sink down, bringing the NEXT largest number to the top
+        // Then pass 'i' as the heapSize. This shrinks the active heap, ignoring the sorted numbers at the back
+        heapify(a, i, 0);
+        // Print the array state after the new largest number has surfaced
         printArray(out, a, "i = " + to_string(i));
     }
 

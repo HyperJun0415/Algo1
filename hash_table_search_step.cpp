@@ -6,7 +6,7 @@
 // Trimester: 2610
 // Member_1: 242UC244PB | LEM JOE ERN | lem.joe.ern@student.mmu.edu.my | 0162237965
 // Member_2: 251UC250J5 | LEE JUN YAN | lee.jun.yan@student.mmu.edu.my | 0128500415
-// Member_3: 251UC25141 | SHAWN GOH XUN SHEN | shawn.goh.xun.@student.mmu.edu.my | 0199906601
+// Member_3: 251UC25141 | SHAWN GOH XUN SHEN | shawn.goh.xun@student.mmu.edu.my | 0199906601
 // Member_4: 242UC244KV | KOH HUI WEN | koh.hui.wen@student.mmu.edu.my | 0129817286
 // *********************************************************
 // Task Distribution

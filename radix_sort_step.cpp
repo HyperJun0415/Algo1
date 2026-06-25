@@ -200,6 +200,10 @@ int main()
         }
     }
 
+    // Dynamic Digit Scan: Instead of hardcoding 10 passes like the main file,
+    // we calculate the maximum number of digits present within this specific row range.
+    // This stops us from running empty, redundant passes over smaller numbers.
+
     int maxDigits = 0;
     long long temp = maxKey;
     while (temp > 0)
@@ -210,9 +214,15 @@ int main()
     if (maxDigits == 0)
         maxDigits = 1;
 
+    // Loop through each digit position, moving right-to-left (Least Significant Digit first).
+
     for (int p = 0; p < maxDigits; p++)
     {
         countingSortByDigit(a, p);
+
+        // The label calculation 'maxDigits - p' converts the index
+        // into an explicit tracking descriptor (e.g., d=10 down to d=1)
+        // to directly match the formatting required in our report submission.
 
         int dLabel = maxDigits - p;
         printArray(out, a, "d=" + to_string(dLabel));

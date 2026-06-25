@@ -23,23 +23,28 @@
 #include <string>
 using namespace std;
 
-struct Record {
+struct Record
+{
     long long key;
     string word;
 };
 
-vector<Record> readDataset(const string& filename) {
+vector<Record> readDataset(const string &filename)
+{
     vector<Record> a;
     ifstream inFile(filename.c_str());
     string line;
 
-    while (getline(inFile, line)) {
-        if (line != "") {
+    while (getline(inFile, line))
+    {
+        if (line != "")
+        {
             stringstream ss(line);
             string left;
             string right;
 
-            if (getline(ss, left, ',') && getline(ss, right)) {
+            if (getline(ss, left, ',') && getline(ss, right))
+            {
                 Record r;
                 r.key = stoll(left);
                 r.word = right;
@@ -51,29 +56,36 @@ vector<Record> readDataset(const string& filename) {
     return a;
 }
 
-string getSizeText(const string& filename, int n) {
+string getSizeText(const string &filename, int n)
+{
     string text = "";
 
-    for (int i = 0; i < (int)filename.length(); i++) {
-        if (filename[i] >= '0' && filename[i] <= '9') {
+    for (int i = 0; i < (int)filename.length(); i++)
+    {
+        if (filename[i] >= '0' && filename[i] <= '9')
+        {
             text = text + filename[i];
         }
     }
 
-    if (text == "") {
+    if (text == "")
+    {
         text = to_string(n);
     }
 
     return text;
 }
 
-void printArray(ofstream& out, const vector<Record>& a, const string& label) {
+void printArray(ofstream &out, const vector<Record> &a, const string &label)
+{
     out << "[";
 
-    for (int i = 0; i < (int)a.size(); i++) {
+    for (int i = 0; i < (int)a.size(); i++)
+    {
         out << a[i].key << "/" << a[i].word;
 
-        if (i != (int)a.size() - 1) {
+        if (i != (int)a.size() - 1)
+        {
             out << ", ";
         }
     }
@@ -81,32 +93,38 @@ void printArray(ofstream& out, const vector<Record>& a, const string& label) {
     out << "] " << label << "\n";
 }
 
-void swapRecord(vector<Record>& a, int i, int j) {
+void swapRecord(vector<Record> &a, int i, int j)
+{
     Record temp = a[i];
     a[i] = a[j];
     a[j] = temp;
 }
 
-void heapify(vector<Record>& a, int heapSize, int root) {
+void heapify(vector<Record> &a, int heapSize, int root)
+{
     int largest = root;
     int left = 2 * root + 1;
     int right = 2 * root + 2;
 
-    if (left < heapSize && a[left].key > a[largest].key) {
+    if (left < heapSize && a[left].key > a[largest].key)
+    {
         largest = left;
     }
 
-    if (right < heapSize && a[right].key > a[largest].key) {
+    if (right < heapSize && a[right].key > a[largest].key)
+    {
         largest = right;
     }
 
-    if (largest != root) {
+    if (largest != root)
+    {
         swapRecord(a, root, largest);
         heapify(a, heapSize, largest);
     }
 }
 
-int main() {
+int main()
+{
     string filename;
     int startRow;
     int endRow;
@@ -122,22 +140,30 @@ int main() {
 
     vector<Record> all = readDataset(filename);
 
-    if (startRow < 1) {
+    if (startRow < 1)
+    {
         startRow = 1;
     }
 
-    if (endRow > (int)all.size()) {
+    if (endRow > (int)all.size())
+    {
         endRow = all.size();
     }
 
-    if (startRow > endRow) {
+    if (startRow > endRow)
+    {
         cout << "Invalid row range." << endl;
         return 1;
     }
 
+    // Bound Filtering Logic: Since C++ vectors are 0-indexed but users enter
+    // real human row indices starting at 1, we subtract 1 from the range boundaries.
+    // This grabs only the requested slice of the dataset to create a safe trace array.
+
     vector<Record> a;
 
-    for (int i = startRow - 1; i <= endRow - 1; i++) {
+    for (int i = startRow - 1; i <= endRow - 1; i++)
+    {
         a.push_back(all[i]);
     }
 
@@ -148,15 +174,27 @@ int main() {
 
     int n = a.size();
 
-    for (int i = n / 2 - 1; i >= 0; i--) {
+    // Phase 1: Build the Heap structure out of the sliced row subarray.
+
+    for (int i = n / 2 - 1; i >= 0; i--)
+    {
         heapify(a, n, i);
     }
 
+    // Prints out the stable, fully established max heap array state right before
+    // any extraction swaps begin. This serves as our baseline trace state.
+
     printArray(out, a, "initial");
 
-    for (int i = n - 1; i > 0; i--) {
-        swapRecord(a, 0, i);
-        heapify(a, i, 0);
+    // Phase 2: Sequential extraction passes.
+
+    for (int i = n - 1; i > 0; i--)
+    {
+        swapRecord(a, 0, i); // Swap current max element to its final sorted spot at the back
+        heapify(a, i, 0);    // Trickle the new root item down to fix the broken heap rule
+        // Tracing Point: Captures the exact arrangement of the array at the conclusion of
+        // the i-th structural modification pass. It visibly shows the elements sorting
+        // themselves from back to front.
         printArray(out, a, "i = " + to_string(i));
     }
 

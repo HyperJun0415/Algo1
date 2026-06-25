@@ -30,6 +30,9 @@ struct Record
     string word;
 };
 
+// Made a custom math helper because pow() from <cmath> uses floating-point math,
+// which might have tiny rounding errors that break modulo-based digit extraction.
+
 long long power10(int p)
 {
     long long ans = 1;
@@ -41,6 +44,9 @@ long long power10(int p)
 
     return ans;
 }
+
+// This drops the trailing digits using integer division, then takes the targeted
+// single digit using % 10. This achieves O(1) digit extraction.
 
 int getDigit(long long value, int pos)
 {
@@ -97,18 +103,25 @@ void countingSortByDigit(vector<Record> &a, int pos)
 {
     int n = a.size();
     vector<Record> output(n);
-    int count[10];
+    int count[10]; // Fixed numbers of data
 
+    // Step 1: Count how many records share the same digit at this position.
     for (int i = 0; i < 10; i++)
     {
         count[i] = 0;
     }
 
+    // Step 2: Converts raw frequencies into actual target array indices.
+    // Example: if count[0] is 3, then count[1] starts positioning items from index 3 onwards.
     for (int i = 0; i < n; i++)
     {
         int d = getDigit(a[i].key, pos);
         count[d]++;
     }
+
+    // Step 3: We iterate backwards (n-1 down to 0) to preserve the relative
+    // order established by previous digit passes. If you loop forward,
+    // the sort becomes unstable and ruins the Radix Sort logic.
 
     for (int i = 1; i < 10; i++)
     {
@@ -127,6 +140,10 @@ void countingSortByDigit(vector<Record> &a, int pos)
         a[i] = output[i];
     }
 }
+
+// We pass through exactly 10 iterations becuz our max keys are 10 digits long.
+// This proves total time complexity is O(10 * (n + 10)),
+// which reduces down to linear time O(n).
 
 void radixSort(vector<Record> &a)
 {
@@ -151,6 +168,9 @@ int main()
         cout << "No data loaded." << endl;
         return 1;
     }
+
+    // Isolate calculation logic from I/O boundaries. High-resolution clock
+    // captures CPU cycles exclusively during the sort execution to keep metrics accurate.
 
     auto start = chrono::high_resolution_clock::now();
     radixSort(a);
